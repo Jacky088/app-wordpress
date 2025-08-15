@@ -54,3 +54,8 @@ body.wp-admin .wrap h2 {
 .settings-error {
     margin-top: 20px;
 }
+
+/* Styles for single filter row */
+.apps-exhibition-filter-group {
+    margin-bottom: 20px; /* Adjust spacing as needed */
+}
