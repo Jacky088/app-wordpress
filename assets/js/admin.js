@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+jQuery(document)。ready(function($) {
     let mediaUploader;
 
     $('#upload_icon_button').on('click', function(e) {
