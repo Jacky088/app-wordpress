@@ -1,0 +1,168 @@
+.apps-exhibition-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.apps-exhibition-filter {
+    margin-bottom: 20px;
+    font-size: 16px;
+    user-select: none;
+}
+
+.apps-exhibition-filter .filter-btn {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 6px 12px;
+    background: #eee;
+    color: #333;
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.apps-exhibition-filter .filter-btn.active,
+.apps-exhibition-filter .filter-btn:hover {
+    background: #0073aa;
+    color: #fff;
+    text-decoration: none;
+}
+
+.apps-exhibition-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.apps-exhibition-item {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.apps-exhibition-item:hover {
+    box-shadow: 0 5px 14px rgba(0,0,0,0.15);
+}
+
+.app-icon {
+    width: 96px;
+    height: 96px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center center;
+    border-radius: 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.app-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.app-name {
+    margin: 0 0 5px 0;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.2;
+    color: #222;
+}
+
+.app-desc {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* 限制最大3行 */
+    -webkit-box-orient: vertical;
+}
+
+.app-platforms {
+    margin-bottom: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.platform-tag {
+    background: linear-gradient(135deg, #a6d8ff, #4aa3ff);
+    color: #005bb5;
+    padding: 6px 14px;
+    font-size: 13px;
+    border-radius: 14px;
+    user-select: none;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(74, 163, 255, 0.5);
+    transition: background-color 0.3s ease;
+}
+
+.platform-tag:hover {
+    background: linear-gradient(135deg, #4aa3ff, #a6d8ff);
+    color: #003f7f;
+    cursor: default;
+}
+
+.app-downloads {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.app-downloads .download-btn {
+    background-color: #0088cc;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 16px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    white-space: nowrap;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 136, 204, 0.5);
+}
+
+.app-downloads .download-btn:hover,
+.app-downloads .download-btn:focus {
+    background-color: #005f99;
+    box-shadow: 0 4px 12px rgba(0, 95, 153, 0.7);
+    outline: none;
+}
+
+@media (max-width: 768px) {
+    .apps-exhibition-list {
+        grid-template-columns: 1fr;
+    }
+    .apps-exhibition-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    .app-icon {
+        margin-bottom: 15px;
+    }
+    .app-info {
+        justify-content: flex-start;
+        align-items: center;
+    }
+    .app-platforms {
+        justify-content: center;
+    }
+    .app-downloads {
+        justify-content: center;
+    }
+}
