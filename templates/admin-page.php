@@ -1,9 +1,20 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-settings_errors( 'apps_exhibition_messages' );
+// Retrieve the plugin instance to access its properties
+global $apps_exhibition_plugin_instance;
+// Safety check: Ensure the global instance is indeed an object of our plugin class
+if ( ! $apps_exhibition_plugin_instance instanceof Apps_Exhibition ) {
+    // This should ideally not happen with the corrected global instance setup.
+    // But good for defensive programming.
+    esc_html_e( '插件初始化错误。', 'apps-exhibition' );
+    return;
+}
 
-$platform_options = [ 'Android', 'AndroidTV', 'iOS', 'iPadOS', 'macOS', 'Windows' ];
+$platform_options = $apps_exhibition_plugin_instance->platform_options;
+
+// Existing settings_errors call for displaying messages
+settings_errors( 'apps_exhibition_messages' );
 ?>
 <div class="wrap">
     <h1><?php esc_html_e( '应用页面插件管理', 'apps-exhibition' ); ?></h1>
@@ -40,7 +51,7 @@ $platform_options = [ 'Android', 'AndroidTV', 'iOS', 'iPadOS', 'macOS', 'Windows
                 </tr>
 
                 <tr>
-                    <th><?php esc_html_e( '应用分类标签', 'apps-exhibition' ); ?> <span style="color:red;">*</span></th>
+                    <th><?php esc_html_e( '应用平台', 'apps-exhibition' ); ?> <span style="color:red;">*</span></th>
                     <td>
                         <?php foreach ( $platform_options as $option ) : ?>
                             <label style="margin-right: 15px;">
@@ -48,16 +59,23 @@ $platform_options = [ 'Android', 'AndroidTV', 'iOS', 'iPadOS', 'macOS', 'Windows
                                 <?php echo esc_html( $option ); ?>
                             </label>
                         <?php endforeach; ?>
-                        <p class="description"><?php esc_html_e( '请选择至少一个分类标签。', 'apps-exhibition' ); ?></p>
+                        <p class="description"><?php esc_html_e( '请选择至少一个平台分类。', 'apps-exhibition' ); ?></p>
                     </td>
                 </tr>
+                
+                <!-- Removed the '二级筛选分类' row -->
 
                 <tr>
                     <th><?php esc_html_e( '下载链接', 'apps-exhibition' ); ?> <span style="color:red;">*</span></th>
                     <td>
                         <div id="downloads_container">
                             <?php
-                            $downloads = is_array( $edit_app['app_downloads'] ?? null ) ? $edit_app['app_downloads'] : [ [ 'url' => '', 'text' => '下载' ] ];
+                            // Ensure at least one empty download item for new apps if no existing downloads
+                            $downloads = is_array( $edit_app['app_downloads'] ?? null ) ? $edit_app['app_downloads'] : [];
+                            if ( empty($downloads) ) { // This condition covers both new apps and existing apps with no downloads
+                                $downloads = [ [ 'url' => '', 'text' => __( '下载', 'apps-exhibition' ) ] ];
+                            }
+                            
                             foreach ( $downloads as $index => $dl ) :
                             ?>
                                 <div class="download-item" style="margin-bottom:8px; display:flex; gap:8px; align-items:center;">
@@ -89,7 +107,7 @@ $platform_options = [ 'Android', 'AndroidTV', 'iOS', 'iPadOS', 'macOS', 'Windows
                     <th><?php esc_html_e( '图标', 'apps-exhibition' ); ?></th>
                     <th><?php esc_html_e( '名称', 'apps-exhibition' ); ?></th>
                     <th><?php esc_html_e( '描述', 'apps-exhibition' ); ?></th>
-                    <th><?php esc_html_e( '分类', 'apps-exhibition' ); ?></th>
+                    <th><?php esc_html_e( '平台', 'apps-exhibition' ); ?></th>
                     <th><?php esc_html_e( '操作', 'apps-exhibition' ); ?></th>
                 </tr>
             </thead>
@@ -135,30 +153,60 @@ jQuery(function($) {
     $('#add_download_button').on('click', function() {
         var item = $('<div class="download-item" style="margin-bottom:8px; display:flex; gap:8px; align-items:center;">' +
             '<input type="url" name="download_url[]" placeholder="<?php echo esc_js( __( '下载链接 URL', 'apps-exhibition' ) ); ?>" required style="width:60%;" />' +
-            '<input type="text" name="download_text[]" placeholder="<?php echo esc_js( __( '按钮文字', 'apps-exhibition' ) ); ?>" required style="width:30%;" />' +
+            '<input type="text" name="download_text[]" placeholder="<?php echo esc_js( __( '按钮文字', 'apps-exhibition' ) ); ?>" value="<?php echo esc_js(__( '下载', 'apps-exhibition' )); ?>" required style="width:30%;" />' + // Default text for new items
             '<button type="button" class="button remove-download-button" style="width:8%;"><?php echo esc_js( __( '删', 'apps-exhibition' ) ); ?></button>' +
             '</div>');
         $('#downloads_container').append(item);
     });
     $('#downloads_container').on('click', '.remove-download-button', function() {
-        $(this).closest('.download-item').remove();
-        if ($('#downloads_container .download-item').length === 0) {
-            $('#add_download_button').click();
+        const downloadItems = $('#downloads_container .download-item');
+        if (downloadItems.length > 1) { // Only remove if more than one item exists
+             $(this).closest('.download-item').remove();
+        } else {
+            // If only one item, clear its values instead of removing
+            $(this).closest('.download-item').find('input[type="url"]').val('');
+            $(this).closest('.download-item').find('input[type="text"]').val('<?php echo esc_js(__( '下载', 'apps-exhibition' )); ?>'); // Reset default text
         }
     });
+
+    // Client-side validation for form submission
     $('#apps-exhibition-form').on('submit', function() {
         let valid = true;
-        $('#downloads_container input[type="url"]').each(function() {
-            if ($(this).val().trim() === '') valid = false;
-        });
-        $('#downloads_container input[type="text"]').each(function() {
-            if ($(this).val().trim() === '') valid = false;
-        });
-        if (!valid) {
-            alert('<?php echo esc_js( __( '请确保所有下载链接和按钮文字均已填写。', 'apps-exhibition' ) ); ?>');
+
+        // General required fields
+        if (!$('#app_name').val().trim() || !$('#app_description').val().trim() || !$('#app_icon').val().trim()) {
+            alert('<?php echo esc_js(__( '请填写所有必填项 (应用名称、描述、图标)。', 'apps-exhibition' )); ?>');
             return false;
         }
-        return true;
+
+        // Platform checkboxes validation
+        if ($('input[name="app_platforms[]"]:checked').length === 0) {
+            alert('<?php echo esc_js(__( '请至少选择一个平台分类。', 'apps-exhibition' )); ?>');
+            return false;
+        }
+        
+        // Download links validation
+        let hasValidDownloadEntry = false;
+        $('#downloads_container .download-item').each(function() {
+            const url = $(this).find('input[name="download_url[]"]').val().trim();
+            const text = $(this).find('input[name="download_text[]"]').val().trim();
+
+            if (url && text) {
+                // Found at least one complete download entry
+                hasValidDownloadEntry = true;
+            } else if (url || text) { // If one is filled but not the other
+                alert('<?php echo esc_js(__( '请确保所有下载链接和按钮文字均已填写，或者留空以便删除。', 'apps-exhibition' )); ?>');
+                valid = false;
+                return false; // Exit the .each loop
+            }
+        });
+
+        if (!hasValidDownloadEntry) {
+            alert('<?php echo esc_js(__( '请至少填写一个完整下载链接（URL和按钮文字）。', 'apps-exhibition' )); ?>');
+            return false;
+        }
+
+        return valid; // Allow form submission if all client-side checks pass
     });
 });
 </script>
