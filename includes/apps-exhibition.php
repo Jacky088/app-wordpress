@@ -1,106 +1,95 @@
 <?php
-/**
- * Plugin Name: 应用页面插件
- * Plugin URI: https://github.com/Jacky088/app-wordpress
- * Description: 推荐多个应用，支持后台管理、多端自适应、分类筛选、多下载按钮。
- * Version: 1.3.0
- * Author: 木木
- * Author URI: https://github.com/Jacky088/app-wordpress
- * Text Domain: apps-exhibition
- */
+if ( ! defined( 'ABSPATH' ) ) exit;
 
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
+add_shortcode( 'apps_exhibition', 'apps_exhibition_shortcode' );
 
-if ( ! defined( 'APPS_EXHIBITION_PATH' ) ) {
-    define( 'APPS_EXHIBITION_PATH', plugin_dir_path( __FILE__ ) );
-}
+function apps_exhibition_shortcode() {
+    global $wpdb, $apps_exhibition_plugin_instance; // Access plugin instance for options
 
-final class Apps_Exhibition {
-
-    const VERSION = '1.3.0';
-
-    private $plugin_path;
-    private $plugin_url;
-    private $table_name;
-
-    /** 平台选项 */
-    public $platform_options = [ 'Android', 'AndroidTV', 'iOS', 'iPadOS', 'macOS', 'Windows' ];
-
-    public function __construct() {
-        $this->plugin_path = plugin_dir_path( __FILE__ );
-        $this->plugin_url  = plugin_dir_url( __FILE__ );
-
-        global $wpdb;
-        $this->table_name = $wpdb->prefix . 'apps_exhibition';
-
-        // 初始化
-        $this->init_hooks();
+    // Safety check for plugin instance
+    if ( ! $apps_exhibition_plugin_instance instanceof Apps_Exhibition ) {
+        return '<p>' . esc_html__( '应用展示插件初始化错误。', 'apps-exhibition' ) . '</p>';
     }
 
-    private function init_hooks() {
-        register_activation_hook( __FILE__, [ $this, 'activate_plugin' ] );
+    $table = $wpdb->prefix . 'apps_exhibition';
 
-        add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
-        add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
-        add_action( 'wp_enqueue_scripts', [ $this, 'frontend_enqueue_scripts' ] );
+    // Get filter parameters from URL
+    $filter_platform = isset( $_GET['platform'] ) ? sanitize_text_field( wp_unslash( $_GET['platform'] ) ) : '';
 
-        // 载入文件（确保路径准确）
-        require_once $this->plugin_path . 'includes/admin.php';
-        require_once $this->plugin_path . 'includes/shortcode.php';
+    $all_apps = $wpdb->get_results( "SELECT * FROM {$table} ORDER BY created_at DESC", ARRAY_A );
+
+    if ( ! $all_apps ) {
+        return '<p>' . esc_html__( '没有可展示的应用', 'apps-exhibition' ) . '</p>';
     }
 
-    public function activate_plugin() {
-        global $wpdb;
-        $charset_collate = $wpdb->get_charset_collate();
+    // Get available platform options from the plugin instance
+    $all_possible_platforms  = $apps_exhibition_plugin_instance->platform_options;
 
-        $sql = "CREATE TABLE IF NOT EXISTS {$this->table_name} (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            app_name varchar(100) NOT NULL,
-            app_description text NOT NULL,
-            app_icon varchar(255) NOT NULL,
-            app_platforms varchar(255) NOT NULL,
-            app_downloads text NOT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
-            PRIMARY KEY  (id)
-        ) $charset_collate;";
-
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-        dbDelta( $sql );
+    // Filter apps based on selected platform
+    $final_filtered_apps = $all_apps;
+    if ( $filter_platform && in_array( $filter_platform, $all_possible_platforms, true ) ) {
+        $final_filtered_apps = array_filter( $all_apps, function( $app ) use ( $filter_platform ) {
+            $platforms_in_app = explode( ',', $app['app_platforms'] );
+            return in_array( $filter_platform, $platforms_in_app, true );
+        } );
     }
 
-    public function add_admin_menu() {
-        add_menu_page(
-            __( '应用展示', 'apps-exhibition' ),
-            __( '应用展示', 'apps-exhibition' ),
-            'manage_options',
-            'apps-exhibition',
-            [ $this, 'render_admin_page' ],
-            'dashicons-tablet',
-            30
-        );
-    }
-
-    public function render_admin_page() {
-        if ( function_exists( 'apps_exhibition_admin_page' ) ) {
-            apps_exhibition_admin_page();
+    // Collect all platforms actually in use by the filtered apps for the filter buttons
+    $platforms_in_use = [];
+    foreach ( $all_apps as $app ) { // Iterate all apps to get all platforms ever, not just filtered ones
+        $ps = explode( ',', $app['app_platforms'] );
+        foreach ( $ps as $p ) {
+            if ( $p && ! in_array( $p, $platforms_in_use, true ) ) {
+                $platforms_in_use[] = $p;
+            }
         }
     }
+    sort( $platforms_in_use );
 
-    public function admin_enqueue_scripts( $hook_suffix ) {
-        if ( $hook_suffix !== 'toplevel_page_apps-exhibition' ) {
-            return;
-        }
 
-        wp_enqueue_media();
-        wp_enqueue_style( 'apps-exhibition-admin-style', $this->plugin_url . 'assets/css/admin.css', [], self::VERSION );
-        wp_enqueue_script( 'apps-exhibition-admin-script', $this->plugin_url . 'assets/js/admin.js', [ 'jquery' ], self::VERSION, true );
-    }
+    ob_start();
+    ?>
 
-    public function frontend_enqueue_scripts() {
-        wp_enqueue_style( 'apps-exhibition-style', $this->plugin_url . 'assets/css/apps-exhibition.css', [], self::VERSION );
-    }
+    <div class="apps-exhibition-wrap">
+        <div class="apps-exhibition-filter-group">
+            <div class="apps-exhibition-filter">
+                <span><?php esc_html_e( '筛选分类:', 'apps-exhibition' ); ?></span>
+                <a class="filter-btn<?php echo $filter_platform === '' ? ' active' : ''; ?>" href="<?php echo esc_url( remove_query_arg( 'platform' ) ); ?>"><?php esc_html_e( '全部', 'apps-exhibition' ); ?></a>
+                <?php foreach ( $platforms_in_use as $platform ) : ?>
+                    <a class="filter-btn<?php echo ( $filter_platform === $platform ) ? ' active' : ''; ?>" href="<?php echo esc_url( add_query_arg( 'platform', $platform ) ); ?>"><?php echo esc_html( $platform ); ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="apps-exhibition-list">
+            <?php if ( empty( $final_filtered_apps ) ) : ?>
+                <p><?php esc_html_e( '没有找到符合条件的应用。', 'apps-exhibition' ) . '</p>'; ?>
+            <?php else : ?>
+                <?php foreach ( $final_filtered_apps as $app ) :
+                    $downloads  = maybe_unserialize( $app['app_downloads'] );
+                    $downloads  = is_array( $downloads ) ? $downloads : []; // Ensure it's an array
+                    $platforms  = ! empty( $app['app_platforms'] ) ? explode( ',', $app['app_platforms'] ) : []; // Not displayed on card, but kept for reference
+                ?>
+                    <div class="apps-exhibition-item" title="<?php echo esc_attr( $app['app_name'] ); ?>">
+                        <div class="app-icon" style="background-image:url('<?php echo esc_url( $app['app_icon'] ); ?>')"></div>
+                        <div class="app-text-content">
+                            <h3 class="app-name"><?php echo esc_html( $app['app_name'] ); ?></h3>
+                            <div class="app-desc"><?php echo esc_html( $app['app_description'] ); ?></div>
+                        </div>
+                        <div class="app-hover-action">
+                            <?php // Only display the first download button on hover (or always on mobile)
+                            if ( ! empty( $downloads ) && ! empty( $downloads[0]['url'] ) ) : ?>
+                                <a href="<?php echo esc_url( $downloads[0]['url'] ); ?>" target="_blank" rel="noopener" class="download-btn"><?php echo esc_html( $downloads[0]['text'] ); ?></a>
+                            <?php else : ?>
+                                <span class="download-btn download-btn-disabled"><?php esc_html_e( '暂无下载', 'apps-exhibition' ); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <?php
+    return ob_get_clean();
 }
-
-new Apps_Exhibition();
