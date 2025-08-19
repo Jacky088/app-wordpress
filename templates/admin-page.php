@@ -281,17 +281,25 @@ settings_errors( 'apps_exhibition_messages' );
             <?php foreach ( $home_posters as $poster ) : 
                 if ( is_array( $poster ) && isset( $poster['url'] ) ) : 
             ?>
-            <div class="poster-config-item" style="border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:10px; background:#f9f9f9;">
-                <div style="margin-bottom:8px;">
-                    <strong><?php esc_html_e( '海报图片', 'apps-exhibition' ); ?>:</strong><br>
-                    <img src="<?php echo esc_url( $poster['url'] ); ?>" style="max-width:200px; max-height:150px; margin-top:4px;">
-                    <button type="button" class="button remove-poster-conf"><?php esc_html_e( '删除', 'apps-exhibition' ); ?></button>
+            <div class="poster-config-item" style="border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:10px; background:#f9f9f9;
+                display: flex; align-items: flex-start; gap: 15px;">
+
+                <!-- 左侧海报图片 -->
+                <div style="flex: 0 0 auto;">
+                    <img src="<?php echo esc_url( $poster['url'] ); ?>" style="max-width:200px; max-height:150px; border-radius: 6px;">
                 </div>
-                <div style="margin-top:8px;">
-                    <input type="text" class="widefat download-url-input" placeholder="<?php esc_attr_e( '下载地址', 'apps-exhibition' ); ?>" value="<?php echo esc_attr( $poster['download_url'] ?? '' ); ?>">
-                </div>
-                <div style="margin-top:8px;">
-                    <input type="text" class="widefat download-text-input" placeholder="<?php esc_attr_e( '按钮文字', 'apps-exhibition' ); ?>" value="<?php echo esc_attr( $poster['download_text'] ?? '' ); ?>">
+
+                <!-- 右侧：从上到下 删除按钮、下载地址输入框、按钮文字输入框 -->
+                <div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px;">
+                    <div>
+                        <button type="button" class="button remove-poster-conf"><?php esc_html_e( '删除', 'apps-exhibition' ); ?></button>
+                    </div>
+                    <div>
+                        <input type="text" class="widefat download-url-input" placeholder="<?php esc_attr_e( '下载地址', 'apps-exhibition' ); ?>" value="<?php echo esc_attr( $poster['download_url'] ?? '' ); ?>">
+                    </div>
+                    <div>
+                        <input type="text" class="widefat download-text-input" placeholder="<?php esc_attr_e( '按钮文字', 'apps-exhibition' ); ?>" value="<?php echo esc_attr( $poster['download_text'] ?? '' ); ?>">
+                    </div>
                 </div>
             </div>
             <?php endif; endforeach; ?>
