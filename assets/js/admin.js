@@ -124,8 +124,9 @@ jQuery(document).ready(function($) {
     })();
 
     // --------- 首页海报管理相关功能 ---------
-    (function() {
+    (function($){
         const HOME_POSTERS_INPUT = '#home_posters';
+
         if (!$(HOME_POSTERS_INPUT).length) return;
 
         // 获取并解析海报数组
@@ -156,12 +157,15 @@ jQuery(document).ready(function($) {
 
             let config_html = '';
             for (let i = 0; i < posters.length; i++) {
-                config_html += '<div class="poster-config-item" style="border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:10px; background:#f9f9f9;">' +
-                    '<div style="margin-bottom:8px;"><strong>海报图片:</strong><br>' +
-                    '<img src="'+posters[i].url+'" style="max-width:200px; max-height:150px; margin-top:4px;">' +
-                    '<button type="button" class="button remove-poster-conf">删除</button></div>' +
-                    '<div style="margin-top:8px;"><input type="text" class="widefat download-url-input" placeholder="下载地址" value="'+(posters[i].download_url||'')+'" ></div>' +
-                    '<div style="margin-top:8px;"><input type="text" class="widefat download-text-input" placeholder="按钮文字" value="'+(posters[i].download_text||'')+'" ></div>' +
+                config_html += '<div class="poster-config-item" style="border:1px solid #ccc; border-radius:6px; padding:10px; margin-bottom:10px; background:#f9f9f9; display: flex; align-items: flex-start; gap: 15px;">' +
+                    '<div style="flex: 0 0 auto;">' +
+                    '<img src="'+posters[i].url+'" style="max-width:200px; max-height:150px; border-radius: 6px;">' +
+                    '</div>' +
+                    '<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px;">' +
+                    '<div><button type="button" class="button remove-poster-conf">删除</button></div>' +
+                    '<div><input type="text" class="widefat download-url-input" placeholder="下载地址" value="'+(posters[i].download_url||'')+'"></div>' +
+                    '<div><input type="text" class="widefat download-text-input" placeholder="按钮文字" value="'+(posters[i].download_text||'')+'"></div>' +
+                    '</div>' +
                     '</div>';
             }
             $('#poster_config_list').html(config_html);
@@ -294,6 +298,5 @@ jQuery(document).ready(function($) {
         // 页面初始化时渲染
         renderHomePosters(getPostersArray());
 
-    })();
-
+    })(jQuery);
 });
