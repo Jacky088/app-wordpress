@@ -9,6 +9,6 @@
 
 ## 界面预览
 
-![image](https://github.com/Jacky088/app-wordpress/blob/main/assets/pc-demo-img.png)
+![image](https://github.com/Jacky088/apps_exhibition/blob/main/assets/ipad-demo-img.png)
 
 ![image](https://github.com/Jacky088/app-wordpress/blob/main/assets/mobile-demo-img.png)
