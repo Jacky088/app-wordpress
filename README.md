@@ -1,9 +1,14 @@
 ## 软件简介
 
+这是一个wordpress插件，用来创建一个页面显示APP信息
+
 ## 使用方法
 
-如何使用： 新建页面，填写 [apps_exhibition] 短代码即可
+1.后台上传并激活插件
+2.新建页面，填写 [apps_exhibition] 短代码即可在前端查看效果
+
 ## 界面预览
+
 ![image](https://github.com/Jacky088/app-wordpress/blob/main/assets/pc-demo-img.png)
 
 ![image](https://github.com/Jacky088/app-wordpress/blob/main/assets/mobile-demo-img.png)
