@@ -60,7 +60,7 @@ function apps_exhibition_shortcode() {
     <div class="apps-exhibition-wrap">
 
         <?php if ( ! empty( $home_posters ) ) : ?>
-            <div class="home-posters-container swiper">
+            <div class="home-posters-container swiper no-pointer-events">
                 <div class="swiper-wrapper">
                     <?php foreach ( $home_posters as $poster ) :
                         if ( ! isset( $poster['url'] ) ) continue;
