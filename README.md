@@ -12,3 +12,7 @@
 ![image](https://github.com/Jacky088/apps_exhibition/blob/main/assets/ipad-demo-img.png)
 
 ![image](https://github.com/Jacky088/app-wordpress/blob/main/assets/mobile-demo-img.png)
+
+## 致谢
+
+[wp_apps_exhibition](https://github.com/very-jack/wp_apps_exhibition)，— 在此基础上修改，站在巨人的肩膀上。
